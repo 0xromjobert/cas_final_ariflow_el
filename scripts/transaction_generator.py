@@ -25,7 +25,8 @@ def create_transactions_table():
         user_id INT NOT NULL,
         transaction_date TIMESTAMP NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
-        stock_symbol TEXT NOT NULL
+        stock_symbol TEXT NOT NULL,
+        transaction_date TIMESTAMP NOT NULL,
     );
     """
     with psycopg2.connect(**conn_params) as conn:
@@ -42,7 +43,7 @@ def generate_transaction_data(user_id, num_transactions, data_interval_start):
         date = (
             data_interval_start + timedelta(hours=random.randint(0, 23), minutes=random.randint(0, 59))
             if data_interval_start else
-            datetime.now() - timedelta(hours=random.randint(1, 23), minutes=random.randint(0, 59))
+            datetime.now() - timedelta(hours=random.randint(1, 3), minutes=random.randint(0, 59))
         )
         amount = round(random.uniform(5.0, 500.0), 2)
         symbol = random.choice(STOCK_SYMBOLS)

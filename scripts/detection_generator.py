@@ -13,7 +13,7 @@ postgres_conn_params = {
 }
 
 mysql_conn_params = {
-    "host": "mysql",
+    "host": "airbyte-mysql",
     "database": "data",
     "user": "docker",
     "password": "docker"
@@ -24,11 +24,13 @@ def fetch_transaction_ids(data_interval_start):
     Récupère les transaction_id du jour.
     """
     today = (data_interval_start or datetime.now()).strftime('%Y-%m-%d')
+    past_labelled_query = """SELECT transaction_id FROM labeled_transactions"""
     query = """
-    SELECT transaction_id FROM customer_transactions
+    SELECT transaction_id FROM customer_transactions 
     WHERE transaction_date >= %s AND transaction_date < %s::date + interval '1 day'
     ORDER BY transaction_id;
     """
+
     with psycopg2.connect(**postgres_conn_params) as conn:
         with conn.cursor() as cur:
             cur.execute(query, (today, today))
@@ -44,7 +46,7 @@ def insert_labeled_transactions(transaction_ids):
         is_fraudulent BOOLEAN NOT NULL
     );
     """
-    insert_query = "INSERT INTO labeled_transactions (transaction_id, is_fraudulent) VALUES (%s, %s)"
+    insert_query = "INSERT IGNORE INTO labeled_transactions (transaction_id, is_fraudulent) VALUES (%s, %s)"
 
     with mysql.connector.connect(**mysql_conn_params) as conn:
         cur = conn.cursor()

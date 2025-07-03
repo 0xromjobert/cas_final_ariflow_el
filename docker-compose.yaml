@@ -37,6 +37,8 @@ services:
       - ./scripts:/opt/airflow/scripts
       - ./requirements.txt:/requirements.txt
       - ./entrypoint.sh:/entrypoint.sh
+      - airflow_logs:/opt/airflow/logs
+
     ports:
       - "8080:8080"
     networks:
@@ -50,6 +52,12 @@ services:
         condition: service_healthy
     entrypoint: "/entrypoint.sh"
     command: airflow scheduler
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname $(hostname)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
     environment:
       AIRFLOW_ROLE: scheduler
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -59,6 +67,9 @@ services:
       - ./scripts:/opt/airflow/scripts
       - ./requirements.txt:/requirements.txt
       - ./entrypoint.sh:/entrypoint.sh
+      - airflow_logs:/opt/airflow/logs
+
+
     networks:
       - airbyte_net
 
@@ -73,7 +84,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "5431:5432"
     networks:
       - airbyte_net
 
@@ -92,12 +103,31 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - airbyte_net
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - airbyte_net
+    depends_on:
+      - airbyte-postgres
 
 volumes:
   pg_data:
   mysql_data:
+  pgadmin_data:
   postgres_airflow_data:
+  airflow_logs:
 
 networks:
   airbyte_net:
-    driver: bridge
+    external: true
+    name: kind

@@ -1,0 +1,21 @@
+{
+  "name": "gcs_customer_transactions",
+  "workspaceId": "f139481a-7b1f-45ad-af45-a2cedda61407",
+  "definitionId": "ca8f6566-e555-4b40-943a-545bf123117a",
+  "configuration": {
+    "format": {
+      "compression": {
+        "compression_type": "No Compression"
+      },
+      "format_type": "JSONL"
+    },
+    "credential": {
+      "credential_type": "HMAC_KEY",
+      "hmac_key_secret": "**********",
+      "hmac_key_access_id": "**********"
+    },
+    "gcs_bucket_name": "market_fraud_data",
+    "gcs_bucket_path": "{namespace}/{stream}/{year}/{month}/{day}/{hour}-{minute}.jsonl",
+    "gcs_bucket_region": "us"
+  }
+}
