@@ -1,0 +1,103 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: airflow-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_airflow_data:/var/lib/postgresql/data
+    networks:
+      - airbyte_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webserver:
+    image: apache/airflow:2.7.2
+    container_name: airflow-webserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+      scheduler:
+        condition: service_started
+    entrypoint: "/entrypoint.sh"
+    command: airflow webserver
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./requirements.txt:/requirements.txt
+      - ./entrypoint.sh:/entrypoint.sh
+    ports:
+      - "8080:8080"
+    networks:
+      - airbyte_net
+
+  scheduler:
+    image: apache/airflow:2.7.2
+    container_name: airflow-scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: "/entrypoint.sh"
+    command: airflow scheduler
+    environment:
+      AIRFLOW_ROLE: scheduler
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./requirements.txt:/requirements.txt
+      - ./entrypoint.sh:/entrypoint.sh
+    networks:
+      - airbyte_net
+
+  airbyte-postgres:
+    image: postgres:17
+    container_name: airbyte-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: airbyte
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - airbyte_net
+
+  airbyte-mysql:
+    image: mysql:8.0
+    container_name: airbyte-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: docker
+      MYSQL_DATABASE: data
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - airbyte_net
+
+volumes:
+  pg_data:
+  mysql_data:
+  postgres_airflow_data:
+
+networks:
+  airbyte_net:
+    driver: bridge
