@@ -13,7 +13,7 @@ conn_params = {
     "password": "docker"
 }
 
-STOCK_SYMBOLS = ["AAPL", "TSLA", "GOOGL", "AMZN", "MSFT", "OR.PA", "BNP.PA", "AIR.PA"]
+STOCK_SYMBOLS = ["BTC", "ETH", "XRP", "ADA", "SOL", "DOGE", "BNB"]
 
 def create_transactions_table():
     """
@@ -25,8 +25,7 @@ def create_transactions_table():
         user_id INT NOT NULL,
         transaction_date TIMESTAMP NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
-        stock_symbol TEXT NOT NULL,
-        transaction_date TIMESTAMP NOT NULL,
+        stock_symbol TEXT NOT NULL
     );
     """
     with psycopg2.connect(**conn_params) as conn:

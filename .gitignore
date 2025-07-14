@@ -1,0 +1,11 @@
+# Ignorer les fichiers de configuration sensibles
+.env
+credentials/*.json
+soda/configuration.yml
+
+# Fichiers temporaires ou locaux
+*.log
+*.tmp
+*.sqlite3
+__pycache__/
+*.pyc

@@ -16,7 +16,7 @@ dag = DAG(
     "generate_transaction_and_labels",
     default_args=default_args,
     description="Génère des données toutes les 30 minutes",
-    schedule_interval="*/30 * * * *",
+    schedule_interval=None,
     catchup=False,
 )
 
